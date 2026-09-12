@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>Netflix iOS Glass Edition</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --bg-body: #000000;
+            --bg-gradient-from: #09090b;
+            --bg-gradient-via: #000000;
+            --bg-gradient-to: #450a0a;
+            --text-main: #ffffff;
+            --glass-bg: rgba(25, 25, 30, 0.65);
+            --glass-card-bg: rgba(30, 30, 35, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --pill-bg: rgba(255, 255, 255, 0.1);
+            --pill-hover: rgba(255, 255, 255, 0.25);
+        }
+
+        body.light-mode {
+            --bg-body: #f1f1f5;
+            --bg-gradient-from: #f8fafc;
+            --bg-gradient-via: #e2e8f0;
+            --bg-gradient-to: #fee2e2;
+            --text-main: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-card-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --pill-bg: rgba(0, 0, 0, 0.06);
+            --pill-hover: rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            touch-action: pan-x pan-y;
+        }
+        
+        .ios-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 0.5px solid var(--glass-border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .ios-glass-card {
+            background: var(--glass-card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 0.5px solid var(--glass-border);
+        }
+
+        .ios-pill {
+            background: var(--pill-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 0.5px solid var(--glass-border);
+            color: var(--text-main);
+        }
+
+        .ios-pill:hover, .ios-pill.active {
+            background: var(--pill-hover);
+            border-color: var(--glass-border);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .device-container {
+            width: 2868px;
+            height: 1320px;
+            max-width: none;
+            max-height: none;
+            margin: auto;
+            border-radius: 32px;
+            border: 8px solid #1c1c1e;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .desktop-grid {
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[var(--bg-gradient-from)] via-[var(--bg-gradient-via)] to-[var(--bg-gradient-to)] flex justify-center items-center min-h-screen">
+
+    <div class="device-container bg-black/90 relative flex flex-col">
+        
+        <!-- MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ -->
+        <div id="loginView" class="absolute inset-0 z-50 bg-black/95 flex flex-col justify-between p-6 overflow-y-auto backdrop-blur-3xl">
+            <div class="flex items-center justify-between">
+                <span class="text-red-600 font-black text-3xl tracking-tighter drop-shadow-[0_0_15px_rgba(220,38,38,0.7)]">NETFLIX</span>
+                <span class="text-xs opacity-70">Hệ thống thành viên</span>
+            </div>
+
+            <div class="w-full max-w-sm mx-auto space-y-6 my-auto py-8">
+                <div class="text-center space-y-2 mb-6">
+                    <h1 id="authFormTitle" class="text-2xl font-bold tracking-tight">Chào mừng trở lại</h1>
+                    <p id="authFormDesc" class="text-xs opacity-75">Vui lòng đăng nhập để truy cập trang chủ</p>
+                </div>
+                
+                <div class="flex rounded-2xl ios-glass p-1">
+                    <button type="button" onclick="switchAuthMode('login')" id="tabLoginBtn" class="flex-1 py-2 text-xs font-bold rounded-xl bg-red-600 text-white transition">Đăng nhập</button>
+                    <button type="button" onclick="switchAuthMode('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold rounded-xl opacity-70 transition">Đăng ký mới</button>
+                </div>
+
+                <div class="space-y-3">
+                    <input type="text" id="loginEmail" placeholder="Email hoặc số điện thoại" 
+                        class="w-full ios-glass px-4 py-3.5 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-zinc-500">
+                    <input type="password" id="loginPassword" placeholder="Mật khẩu" 
+                        class="w-full ios-glass px-4 py-3.5 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-zinc-500">
+                </div>
+
+                <button id="authSubmitBtn" onclick="handleAuthSubmit()" class="w-full bg-red-600 hover:bg-red-500 text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-red-600/40 transition active:scale-95">
+                    Đăng nhập
+                </button>
+
+                <div class="text-center">
+                    <a href="#" class="text-xs opacity-75 hover:underline">Trợ giúp bảo mật tài khoản</a>
+                </div>
+            </div>
+
+            <div class="text-center text-xs opacity-50 pb-2">
+                Protected by iOS Glass Security © 2026
+            </div>
+        </div>
+
+        <!-- TOP HEADER NAVBAR -->
+        <header class="sticky top-0 z-40 ios-glass px-5 py-3.5 flex items-center justify-between border-x-0 border-t-0">
+            <div class="flex items-center space-x-3">
+                <span class="text-red-600 font-black text-2xl tracking-tighter drop-shadow-[0_0_10px_rgba(220,38,38,0.6)]">N</span>
+                <span class="font-bold text-base tracking-wide">Trang chủ</span>
+            </div>
+            <div class="flex items-center space-x-4 text-base">
+                <button onclick="toggleTheme()" id="themeToggleBtn" class="ios-pill w-8 h-8 rounded-full flex items-center justify-center transition hover:scale-105" title="Chuyển đổi giao diện Sáng/Tối">
+                    <i class="fa-solid fa-moon text-sm" id="themeIcon"></i>
+                </button>
+                <i class="fa-solid fa-cast hover:opacity-100 opacity-80 cursor-pointer transition"></i>
+                <i class="fa-solid fa-download hover:opacity-100 opacity-80 cursor-pointer transition"></i>
+                <i class="fa-solid fa-bell hover:opacity-100 opacity-80 cursor-pointer transition"></i>
+            </div>
+        </header>
+
+        <!-- SUB-CATEGORY PILLS -->
+        <div class="px-4 py-2.5 flex space-x-2 overflow-x-auto no-scrollbar shrink-0 z-30 ios-glass border-x-0">
+            <button onclick="openAdvancedFilterModal()" class="ios-pill px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition bg-red-600/20 border-red-500/40 text-red-500"><i class="fa-solid fa-sliders mr-1"></i> Bộ lọc nâng cao</button>
+            <button onclick="loadMovies('phim-moi-cap-nhat', this)" class="ios-pill active px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition">Mới cập nhật</button>
+            <button onclick="loadMovies('tv-shows', this)" class="ios-pill px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition">TV shows</button>
+            <button onclick="loadMovies('phim-le', this)" class="ios-pill px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition">Phim lẻ</button>
+            <button onclick="loadMovies('phim-bo', this)" class="ios-pill px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition">Phim bộ</button>
+            <button onclick="openFilterModal('the-loai')" class="ios-pill px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition">Thể loại <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i></button>
+            <button onclick="openFilterModal('quoc-gia')" class="ios-pill px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition">Quốc gia <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i></button>
+            <button onclick="openFilterModal('nam')" class="ios-pill px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition">Năm <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i></button>
+            <button onclick="openSearchTab()" class="ios-pill px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition"><i class="fa-solid fa-magnifying-glass mr-1"></i> Tìm kiếm</button>
+        </div>
+
+        <!-- MAIN APP CONTENT -->
+        <main class="flex-grow pb-28 overflow-y-auto" id="mainContainer">
+            
+            <!-- VIEW: HOME / LIST -->
+            <div id="homeView" class="space-y-6 p-4 md:p-6">
+                
+                <!-- HERO BANNER -->
+                <div id="heroBanner" class="relative rounded-3xl overflow-hidden ios-glass-card shadow-2xl group cursor-pointer">
+                    <div class="aspect-[16/9] md:aspect-[21/9] w-full relative bg-zinc-900">
+                        <img id="heroImg" src="" alt="" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                    </div>
+                    <div class="absolute bottom-0 inset-x-0 p-5 space-y-3">
+                        <div class="flex items-center justify-center space-x-2 text-xs opacity-80 font-medium">
+                            <span>Series</span> • <span class="text-red-500 font-bold">Netflix Original</span>
+                        </div>
+                        <h2 id="heroTitle" class="text-xl md:text-2xl font-bold text-center tracking-tight text-white drop-shadow-md">Đang tải...</h2>
+                        
+                        <div class="flex items-center justify-center space-x-3 pt-1 max-w-xs mx-auto">
+                            <button id="heroPlayBtn" class="flex-1 bg-white hover:bg-zinc-200 text-black py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-lg transition active:scale-95">
+                                <i class="fa-solid fa-play"></i> Phát
+                            </button>
+                            <button class="flex-1 ios-pill hover:bg-white/25 text-white py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95">
+                                <i class="fa-solid fa-plus"></i> Danh sách
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LOADING -->
+                <div id="loading" class="flex justify-center items-center py-12">
+                    <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-red-600"></div>
+                </div>
+
+                <!-- MOVIE GRID -->
+                <div>
+                    <h3 id="categorySectionTitle" class="text-xs md:text-sm font-bold opacity-70 mb-3 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-1.5 h-3.5 bg-red-600 rounded-full"></span> Danh sách thịnh hành
+                    </h3>
+                    <div id="movieGrid" class="grid grid-cols-3 md:grid-cols-4 desktop-grid gap-3 md:gap-4"></div>
+                </div>
+            </div>
+
+            <!-- VIEW: DETAIL & WATCH SCREEN -->
+            <div id="watchView" class="hidden p-4 md:p-6 space-y-6 animate-fadeIn">
+                <button onclick="goHome()" class="ios-glass px-4 py-2 rounded-2xl text-xs font-semibold flex items-center gap-2 transition w-fit">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại
+                </button>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="relative w-full aspect-video rounded-3xl overflow-hidden ios-glass-card shadow-2xl">
+                            <iframe id="playerIframe" class="w-full h-full absolute inset-0" src="" allowfullscreen></iframe>
+                        </div>
+
+                        <div class="ios-glass-card p-4 rounded-3xl space-y-3">
+                            <div id="serverContainer" class="flex flex-wrap items-center gap-2 pb-2 border-b border-white/10 text-xs"></div>
+                            <div>
+                                <h4 class="text-xs font-semibold opacity-70 mb-2"><i class="fa-solid fa-list-ul mr-1.5"></i> Tập phim:</h4>
+                                <div id="episodesList" class="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ios-glass-card p-5 rounded-3xl space-y-3 h-fit">
+                        <h2 id="detailTitle" class="text-xl font-bold"></h2>
+                        <div class="flex items-center space-x-2 text-xs opacity-75 flex-wrap gap-y-1">
+                            <span id="detailOriginalName" class="italic"></span>
+                            <span>•</span>
+                            <span id="detailEpisodeCount" class="text-red-500 font-semibold bg-red-500/10 px-2 py-0.5 rounded-md"></span>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 pt-1" id="detailCategories"></div>
+                        <p id="detailDesc" class="text-xs opacity-90 leading-relaxed line-clamp-6 pt-1"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: SEARCH TAB -->
+            <div id="searchView" class="hidden p-4 md:p-6 space-y-4">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm phim, diễn viên..." 
+                        class="w-full ios-glass px-4 py-3.5 pl-11 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-zinc-400">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-4 opacity-60 text-sm"></i>
+                </div>
+                <div id="searchGrid" class="grid grid-cols-3 md:grid-cols-4 desktop-grid gap-3 md:gap-4"></div>
+            </div>
+
+            <!-- VIEW: PROFILE -->
+            <div id="profileView" class="hidden p-5 md:p-8 space-y-6 max-w-4xl mx-auto">
+                <div class="flex items-center space-x-4 ios-glass-card p-4 rounded-3xl">
+                    <img id="profileAvatar" src="https://i.pravatar.cc/150?img=12" class="w-14 h-14 rounded-full border-2 border-red-500 object-cover shadow-md" alt="Avatar">
+                    <div>
+                        <h3 id="profileUsername" class="font-bold text-lg">Thành viên <i class="fa-solid fa-chevron-down text-xs ml-1 opacity-60"></i></h3>
+                        <p id="profileEmail" class="text-xs opacity-70">Tài khoản cá nhân</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold opacity-70 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-1.5 h-3.5 bg-red-600 rounded-full"></span> Phim đang xem / Lịch sử xem gần đây
+                        </h4>
+                        <button onclick="clearWatchHistory()" class="text-[11px] text-red-500 hover:underline">Xóa lịch sử</button>
+                    </div>
+                    
+                    <div id="watchHistoryGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+                </div>
+                
+                <div class="pt-4">
+                    <button onclick="triggerLogout()" class="w-full ios-glass text-red-500 py-3.5 rounded-2xl font-semibold text-xs border border-red-500/30 hover:bg-red-500/10 transition">
+                        Đăng xuất tài khoản
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- FILTER MODAL POPUP -->
+        <div id="filterModal" class="hidden absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-4">
+            <div class="ios-glass-card w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                <div class="flex items-center justify-between pb-2 border-b border-white/10">
+                    <h3 id="filterModalTitle" class="font-bold text-base">Bộ lọc</h3>
+                    <button onclick="closeFilterModal()" class="opacity-70 hover:opacity-100"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+                <div id="filterOptionsContainer" class="grid grid-cols-2 gap-2.5"></div>
+            </div>
+        </div>
+
+        <!-- ADVANCED FILTER MODAL -->
+        <div id="advancedFilterModal" class="hidden absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-4">
+            <div class="ios-glass-card w-full md:max-w-lg rounded-t-3xl md:rounded-3xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                    <h3 class="font-bold text-base"><i class="fa-solid fa-sliders mr-2 text-red-500"></i>Bộ lọc nâng cao</h3>
+                    <button onclick="closeAdvancedFilterModal()" class="opacity-70 hover:opacity-100"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <div class="space-y-1.5">
+                        <label class="font-semibold opacity-80">Định dạng</label>
+                        <select id="advType" class="w-full ios-glass px-3 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="" class="bg-zinc-900 text-white">Tất cả Định dạng</option>
+                            <option value="phim-le" class="bg-zinc-900 text-white">Phim lẻ</option>
+                            <option value="phim-bo" class="bg-zinc-900 text-white">Phim bộ</option>
+                            <option value="hoat-hinh" class="bg-zinc-900 text-white">Hoạt hình</option>
+                            <option value="tv-shows" class="bg-zinc-900 text-white">TV Shows</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="font-semibold opacity-80">Thể loại</label>
+                        <select id="advGenre" class="w-full ios-glass px-3 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="" class="bg-zinc-900 text-white">Tất cả Thể loại</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="font-semibold opacity-80">Năm</label>
+                        <select id="advYear" class="w-full ios-glass px-3 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="" class="bg-zinc-900 text-white">Tất cả Năm</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="font-semibold opacity-80">Quốc gia</label>
+                        <select id="advCountry" class="w-full ios-glass px-3 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="" class="bg-zinc-900 text-white">Tất cả Quốc gia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="applyAdvancedFilter()" class="w-full bg-purple-600 hover:bg-purple-500 text-white py-3.5 rounded-2xl font-bold text-xs shadow-lg shadow-purple-600/40 transition active:scale-95 flex items-center justify-center gap-2">
+                    Áp dụng bộ lọc
+                </button>
+            </div>
+        </div>
+
+        <!-- FLOATING BOTTOM NAVIGATION BAR -->
+        <nav class="absolute bottom-3 inset-x-4 md:inset-x-12 ios-glass py-3 px-8 rounded-3xl flex justify-around items-center z-50 shadow-2xl">
+            <button onclick="switchTab('home')" id="navHome" class="flex flex-col items-center text-red-500 transition">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[10px] mt-1 font-medium">Trang chủ</span>
+            </button>
+            <button onclick="switchTab('search')" id="navSearch" class="flex flex-col items-center opacity-60 hover:opacity-100 transition">
+                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                <span class="text-[10px] mt-1 font-medium">Tìm kiếm</span>
+            </button>
+            <button onclick="switchTab('profile')" id="navProfile" class="flex flex-col items-center opacity-60 hover:opacity-100 transition">
+                <i class="fa-solid fa-user text-lg"></i>
+                <span class="text-[10px] mt-1 font-medium">Của tôi</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <script>
+        function lockOrientation() {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock("portrait-primary").catch(function(error) {
+                    console.log("Khóa hướng màn hình không thành công: ", error);
+                });
+            }
+        }
+        window.addEventListener("load", lockOrientation);
+
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
+        document.addEventListener('gesturechange', (e) => e.preventDefault());
+        document.addEventListener('gestureend', (e) => e.preventDefault());
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            let now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) e.preventDefault();
+            lastTouchEnd = now;
+        }, false);
+
+        const API_BASE = "https://phimapi.com";
+        const CDN_IMAGE_BASE = "https://img.phimapi.com";
+
+        const loginView = document.getElementById('loginView');
+        const homeView = document.getElementById('homeView');
+        const watchView = document.getElementById('watchView');
+        const searchView = document.getElementById('searchView');
+        const profileView = document.getElementById('profileView');
+        const movieGrid = document.getElementById('movieGrid');
+        const loading = document.getElementById('loading');
+        const searchInput = document.getElementById('searchInput');
+        const filterModal = document.getElementById('filterModal');
+        const advancedFilterModal = document.getElementById('advancedFilterModal');
+
+        let currentAuthMode = 'login';
+
+        const customCountries = [
+            { name: "Âu Mỹ", slug: "au-my" },
+            { name: "Anh", slug: "anh" },
+            { name: "Trung Quốc", slug: "trung-quoc" },
+            { name: "Indonesia", slug: "indonesia" },
+            { name: "Việt Nam", slug: "viet-nam" },
+            { name: "Pháp", slug: "phap" },
+            { name: "Hồng Kông", slug: "hong-kong" },
+            { name: "Hàn Quốc", slug: "han-quoc" },
+            { name: "Nhật Bản", slug: "nhat-ban" },
+            { name: "Thái Lan", slug: "thai-lan" },
+            { name: "Đài Loan", slug: "dai-loan" },
+            { name: "Nga", slug: "nga" },
+            { name: "Hà Lan", slug: "ha-lan" },
+            { name: "Philippines", slug: "philippines" },
+            { name: "Ấn Độ", slug: "an-do" },
+            { name: "Quốc gia khác", slug: "quoc-gia-khac" }
+        ];
+
+        const customGenres = [
+            { name: "Hành Động", slug: "hanh-dong" },
+            { name: "Phiêu Lưu", slug: "phieu-luu" },
+            { name: "Hoạt Hình", slug: "hoat-hinh" },
+            { name: "Hài", slug: "hai" },
+            { name: "Hình Sự", slug: "hinh-su" },
+            { name: "Tài Liệu", slug: "tai-lieu" },
+            { name: "Chính Kịch", slug: "chinh-kich" },
+            { name: "Gia Đình", slug: "gia-dinh" },
+            { name: "Giả Tưởng", slug: "gia-tuong" },
+            { name: "Lịch Sử", slug: "lich-su" },
+            { name: "Kinh Dị", slug: "kinh-di" },
+            { name: "Nhạc", slug: "nhac" },
+            { name: "Bí Ẩn", slug: "bi-an" },
+            { name: "Lãng Mạn", slug: "lang-man" },
+            { name: "Khoa Học Viễn Tưởng", slug: "khoa-hoc-vien-tuong" },
+            { name: "Gây Cấn", slug: "gay-cans" },
+            { name: "Chiến Tranh", slug: "chien-tranh" },
+            { name: "Tâm Lý", slug: "tam-ly" },
+            { name: "Tình Cảm", slug: "tinh-cam" },
+            { name: "Cổ Trang", slug: "co-trang" },
+            { name: "Miền Tây", slug: "mien-tay" },
+            { name: "Phim 18+", slug: "phim-18" }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
+            initAdvancedFilterSelects();
+        });
+
+        function checkAuthStatus() {
+            const storedUser = localStorage.getItem('netflix_logged_in_user');
+            if (storedUser) {
+                try {
+                    const userData = JSON.parse(storedUser);
+                    applyUserSession(userData);
+                } catch(e) {
+                    const userData = { name: storedUser, email: storedUser, picture: "https://i.pravatar.cc/150?img=12" };
+                    applyUserSession(userData);
+                }
+            } else {
+                loginView.classList.remove('hidden');
+            }
+        }
+
+        function applyUserSession(userData) {
+            loginView.classList.add('hidden');
+            loadMovies('phim-moi-cap-nhat');
+            renderWatchHistory();
+            
+            document.getElementById('profileUsername').innerText = userData.name || "Thành viên";
+            document.getElementById('profileEmail').innerText = userData.email || "";
+            if(userData.picture) {
+                document.getElementById('profileAvatar').src = userData.picture;
+            }
+        }
+
+        function switchAuthMode(mode) {
+            currentAuthMode = mode;
+            const title = document.getElementById('authFormTitle');
+            const desc = document.getElementById('authFormDesc');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const tabLogin = document.getElementById('tabLoginBtn');
+            const tabReg = document.getElementById('tabRegisterBtn');
+
+            if(mode === 'login') {
+                title.innerText = "Chào mừng trở lại";
+                desc.innerText = "Vui lòng đăng nhập để truy cập trang chủ";
+                submitBtn.innerText = "Đăng nhập";
+                tabLogin.className = "flex-1 py-2 text-xs font-bold rounded-xl bg-red-600 text-white transition";
+                tabReg.className = "flex-1 py-2 text-xs font-bold rounded-xl opacity-70 transition";
+            } else {
+                title.innerText = "Đăng ký tài khoản";
+                desc.innerText = "Tạo tài khoản mới để mở khóa toàn bộ ứng dụng";
+                submitBtn.innerText = "Đăng ký ngay";
+                tabReg.className = "flex-1 py-2 text-xs font-bold rounded-xl bg-red-600 text-white transition";
+                tabLogin.className = "flex-1 py-2 text-xs font-bold rounded-xl opacity-70 transition";
+            }
+        }
+
+        function handleAuthSubmit() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            if(!email || !pass) {
+                alert('Vui lòng nhập đầy đủ email và mật khẩu!');
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('netflix_registered_users')) || {};
+
+            if(currentAuthMode === 'register') {
+                if(users[email]) {
+                    alert('Email này đã tồn tại! Vui lòng chọn đăng nhập.');
+                    return;
+                }
+                users[email] = pass;
+                localStorage.setItem('netflix_registered_users', JSON.stringify(users));
+                alert('Đăng ký tài khoản thành công!');
+            } else {
+                if(!users[email] || users[email] !== pass) {
+                    alert('Email hoặc mật khẩu không chính xác, hoặc tài khoản chưa được đăng ký!');
+                    return;
+                }
+            }
+
+            const userData = { name: email.split('@')[0], email: email, picture: "https://i.pravatar.cc/150?img=12" };
+            localStorage.setItem('netflix_logged_in_user', JSON.stringify(userData));
+            
+            loginView.style.opacity = '0';
+            loginView.style.transition = 'opacity 0.4s ease';
+            setTimeout(() => {
+                applyUserSession(userData);
+                loginView.style.opacity = '1';
+            }, 400);
+        }
+
+        function triggerLogout() {
+            if(confirm("Bạn có chắc chắn muốn đăng xuất tài khoản?")) {
+                localStorage.removeItem('netflix_logged_in_user');
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+                switchAuthMode('login');
+                loginView.classList.remove('hidden');
+            }
+        }
+
+        function resolveImageUrl(url) {
+            if (!url) return 'https://via.placeholder.com/300x450?text=No+Image';
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return url;
+            }
+            if (url.startsWith('/')) {
+                return `${CDN_IMAGE_BASE}${url}`;
+            }
+            return `${CDN_IMAGE_BASE}/${url}`;
+        }
+
+        function saveToWatchHistory(movie) {
+            let history = JSON.parse(localStorage.getItem('netflix_watch_history')) || [];
+            history = history.filter(item => item.slug !== movie.slug);
+            history.unshift({
+                slug: movie.slug,
+                name: movie.name,
+                poster_url: movie.poster_url || movie.thumb_url,
+                episode_current: movie.episode_current || 'Đang xem'
+            });
+            if (history.length > 12) history.pop();
+            localStorage.setItem('netflix_watch_history', JSON.stringify(history));
+            renderWatchHistory();
+        }
+
+        function renderWatchHistory() {
+            const container = document.getElementById('watchHistoryGrid');
+            if (!container) return;
+            const history = JSON.parse(localStorage.getItem('netflix_watch_history')) || [];
+            
+            container.innerHTML = '';
+            if (history.length === 0) {
+                container.innerHTML = '<p class="col-span-full text-center text-xs opacity-70 py-4">Chưa có phim nào trong lịch sử xem.</p>';
+                return;
+            }
+
+            history.forEach(movie => {
+                const imageUrl = resolveImageUrl(movie.poster_url);
+                
+                const card = document.createElement('div');
+                card.className = "ios-glass-card rounded-2xl overflow-hidden shadow-md hover:scale-105 transition duration-300 cursor-pointer flex flex-col justify-between";
+                card.onclick = () => getMovieDetail(movie.slug);
+
+                card.innerHTML = `
+                    <div class="relative aspect-[2/3] w-full bg-zinc-900 overflow-hidden">
+                        <img src="${imageUrl}" alt="${movie.name}" class="w-full h-full object-cover" loading="lazy">
+                        <span class="absolute bottom-1 right-1 bg-black/60 backdrop-blur-md text-[10px] px-1.5 py-0.5 rounded text-white font-medium"><i class="fa-solid fa-play mr-1"></i> Tiếp tục</span>
+                    </div>
+                    <div class="p-2.5">
+                        <h4 class="font-semibold text-xs line-clamp-1">${movie.name}</h4>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function clearWatchHistory() {
+            if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử xem phim?")) {
+                localStorage.removeItem('netflix_watch_history');
+                renderWatchHistory();
+            }
+        }
+
+        function initAdvancedFilterSelects() {
+            const genreSelect = document.getElementById('advGenre');
+            customGenres.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.slug;
+                opt.innerText = g.name;
+                opt.className = "bg-zinc-900 text-white";
+                genreSelect.appendChild(opt);
+            });
+
+            const yearSelect = document.getElementById('advYear');
+            for(let y = 2026; y >= 1928; y--) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.innerText = y;
+                opt.className = "bg-zinc-900 text-white";
+                yearSelect.appendChild(opt);
+            }
+
+            const countrySelect = document.getElementById('advCountry');
+            customCountries.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.slug;
+                opt.innerText = c.name;
+                opt.className = "bg-zinc-900 text-white";
+                countrySelect.appendChild(opt);
+            });
+        }
+
+        function openAdvancedFilterModal() {
+            advancedFilterModal.classList.remove('hidden');
+        }
+
+        function closeAdvancedFilterModal() {
+            advancedFilterModal.classList.add('hidden');
+        }
+
+        async function applyAdvancedFilter() {
+            closeAdvancedFilterModal();
+            const genre = document.getElementById('advGenre').value;
+            const country = document.getElementById('advCountry').value;
+            const year = document.getElementById('advYear').value;
+            const type = document.getElementById('advType').value;
+
+            homeView.classList.remove('hidden');
+            watchView.classList.add('hidden');
+            searchView.classList.add('hidden');
+            profileView.classList.add('hidden');
+
+            ['navHome', 'navSearch', 'navProfile'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('text-red-500');
+                el.classList.add('opacity-60');
+            });
+            const navHomeEl = document.getElementById('navHome');
+            navHomeEl.classList.add('text-red-500');
+            navHomeEl.classList.remove('opacity-60');
+
+            loading.style.display = 'flex';
+            movieGrid.innerHTML = '';
+            document.getElementById('categorySectionTitle').innerHTML = `<span class="w-1.5 h-3.5 bg-red-600 rounded-full"></span> Kết quả bộ lọc nâng cao`;
+
+            try {
+                let url = `${API_BASE}/v1/api/danh-sach/phim-moi-cap-nhat?page=1`;
+                if(genre) {
+                    url = `${API_BASE}/v1/api/the-loai/${genre}?page=1`;
+                } else if(country) {
+                    url = `${API_BASE}/v1/api/quoc-gia/${country}?page=1`;
+                } else if(year) {
+                    url = `${API_BASE}/v1/api/nam/${year}?page=1`;
+                } else if(type) {
+                    url = `${API_BASE}/v1/api/danh-sach/${type}?page=1`;
+                }
+
+                const res = await fetch(url);
+                const data = await res.json();
+                let movies = data.items || (data.data && data.data.items) || [];
+                displayMovies(movies, movieGrid);
+            } catch(err) {
+                console.error(err);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            body.classList.toggle('light-mode');
+            
+            if (body.classList.contains('light-mode')) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        function switchTab(tab) {
+            homeView.classList.add('hidden');
+            watchView.classList.add('hidden');
+            searchView.classList.add('hidden');
+            profileView.classList.add('hidden');
+
+            ['navHome', 'navSearch', 'navProfile'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('text-red-500');
+                el.classList.add('opacity-60');
+            });
+
+            if(tab === 'home') {
+                homeView.classList.remove('hidden');
+                const el = document.getElementById('navHome');
+                el.classList.add('text-red-500');
+                el.classList.remove('opacity-60');
+            } else if(tab === 'search') {
+                searchView.classList.remove('hidden');
+                const el = document.getElementById('navSearch');
+                el.classList.add('text-red-500');
+                el.classList.remove('opacity-60');
+            } else if(tab === 'profile') {
+                profileView.classList.remove('hidden');
+                renderWatchHistory();
+                const el = document.getElementById('navProfile');
+                el.classList.add('text-red-500');
+                el.classList.remove('opacity-60');
+            }
+        }
+
+        function openSearchTab() {
+            switchTab('search');
+        }
+
+        function goHome() {
+            switchTab('home');
+        }
+
+        async function loadMovies(type, btnElement) {
+            if(btnElement) {
+                document.querySelectorAll('.ios-pill').forEach(b => b.classList.remove('active'));
+                btnElement.classList.add('active');
+            }
+            
+            homeView.classList.remove('hidden');
+            watchView.classList.add('hidden');
+            searchView.classList.add('hidden');
+            profileView.classList.add('hidden');
+
+            ['navHome', 'navSearch', 'navProfile'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('text-red-500');
+                el.classList.add('opacity-60');
+            });
+            const navHomeEl = document.getElementById('navHome');
+            navHomeEl.classList.add('text-red-500');
+            navHomeEl.classList.remove('opacity-60');
+
+            loading.style.display = 'flex';
+            movieGrid.innerHTML = '';
+
+            let titleText = "Danh sách thịnh hành";
+            if(type === 'tv-shows') titleText = "TV Shows";
+            if(type === 'phim-le') titleText = "Phim Lẻ";
+            if(type === 'phim-bo') titleText = "Phim Bộ";
+            document.getElementById('categorySectionTitle').innerHTML = `<span class="w-1.5 h-3.5 bg-red-600 rounded-full"></span> ${titleText}`;
+
+            try {
+                let url = `${API_BASE}/v1/api/danh-sach/phim-moi-cap-nhat?page=1`;
+                if(type !== 'phim-moi-cap-nhat') {
+                    url = `${API_BASE}/v1/api/danh-sach/${type}?page=1`;
+                }
+
+                let res = await fetch(url);
+                let data = await res.json();
+                let movies = data.items || (data.data && data.data.items) || [];
+
+                if(movies.length > 0) {
+                    const hero = movies[0];
+                    document.getElementById('heroTitle').innerText = hero.name;
+                    const heroImgUrl = resolveImageUrl(hero.poster_url || hero.thumb_url);
+                    document.getElementById('heroImg').src = heroImgUrl;
+                    document.getElementById('heroBanner').onclick = () => getMovieDetail(hero.slug);
+                    document.getElementById('heroPlayBtn').onclick = (e) => {
+                        e.stopPropagation();
+                        getMovieDetail(hero.slug);
+                    };
+                }
+
+                displayMovies(movies.slice(1), movieGrid);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        async function openFilterModal(filterType) {
+            filterModal.classList.remove('hidden');
+            const container = document.getElementById('filterOptionsContainer');
+            const modalTitle = document.getElementById('filterModalTitle');
+            container.innerHTML = '';
+
+            if(filterType === 'the-loai') {
+                modalTitle.innerText = "Chọn Thể loại";
+                customGenres.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.className = "ios-pill py-2.5 px-3 rounded-xl text-xs font-medium text-left truncate transition";
+                    btn.innerText = item.name;
+                    btn.onclick = () => { closeFilterModal(); fetchFilteredData('the-loai', item.slug, item.name); };
+                    container.appendChild(btn);
+                });
+            } else if(filterType === 'quoc-gia') {
+                modalTitle.innerText = "Chọn Quốc gia";
+                customCountries.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.className = "ios-pill py-2.5 px-3 rounded-xl text-xs font-medium text-left truncate transition";
+                    btn.innerText = item.name;
+                    btn.onclick = () => { closeFilterModal(); fetchFilteredData('quoc-gia', item.slug, item.name); };
+                    container.appendChild(btn);
+                });
+            } else if(filterType === 'nam') {
+                modalTitle.innerText = "Chọn Năm phát hành";
+                const years = [];
+                for(let y = 2026; y >= 1928; y--) years.push(y);
+                years.forEach(y => {
+                    const btn = document.createElement('button');
+                    btn.className = "ios-pill py-2.5 px-3 rounded-xl text-xs font-medium text-center transition";
+                    btn.innerText = y;
+                    btn.onclick = () => { closeFilterModal(); fetchFilteredData('nam', y, `Năm ${y}`); };
+                    container.appendChild(btn);
+                });
+            }
+        }
+
+        function closeFilterModal() {
+            filterModal.classList.add('hidden');
+        }
+
+        async function fetchFilteredData(type, slug, displayName) {
+            homeView.classList.remove('hidden');
+            watchView.classList.add('hidden');
+            searchView.classList.add('hidden');
+            profileView.classList.add('hidden');
+
+            ['navHome', 'navSearch', 'navProfile'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('text-red-500');
+                el.classList.add('opacity-60');
+            });
+            const navHomeEl = document.getElementById('navHome');
+            navHomeEl.classList.add('text-red-500');
+            navHomeEl.classList.remove('opacity-60');
+
+            loading.style.display = 'flex';
+            movieGrid.innerHTML = '';
+            document.getElementById('categorySectionTitle').innerHTML = `<span class="w-1.5 h-3.5 bg-red-600 rounded-full"></span> Lọc theo: ${displayName}`;
+
+            try {
+                let url = `${API_BASE}/v1/api/tim-kiem?keyword=${encodeURIComponent(displayName)}&limit=24`;
+                if(type === 'nam') {
+                    url = `${API_BASE}/v1/api/nam/${slug}?page=1`;
+                } else if(type === 'the-loai') {
+                    url = `${API_BASE}/v1/api/the-loai/${slug}?page=1`;
+                } else if(type === 'quoc-gia') {
+                    url = `${API_BASE}/v1/api/quoc-gia/${slug}?page=1`;
+                }
+                const res = await fetch(url);
+                const data = await res.json();
+                let movies = data.items || (data.data && data.data.items) || [];
+                displayMovies(movies, movieGrid);
+            } catch(err) {
+                console.error(err);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayMovies(movies, container) {
+            container.innerHTML = '';
+            if(!movies || movies.length === 0) {
+                container.innerHTML = '<p class="col-span-3 text-center text-xs opacity-70 py-6">Không tìm thấy phim phù hợp.</p>';
+                return;
+            }
+            movies.forEach(movie => {
+                const imageUrl = resolveImageUrl(movie.poster_url || movie.thumb_url);
+                
+                const card = document.createElement('div');
+                card.className = "ios-glass-card rounded-2xl overflow-hidden shadow-md hover:scale-105 transition duration-300 cursor-pointer flex flex-col justify-between";
+                card.onclick = () => getMovieDetail(movie.slug);
+
+                card.innerHTML = `
+                    <div class="relative aspect-[2/3] w-full bg-zinc-900 overflow-hidden">
+                        <img src="${imageUrl}" alt="${movie.name}" class="w-full h-full object-cover" loading="lazy">
+                        <span class="absolute bottom-1 right-1 bg-black/60 backdrop-blur-md text-[10px] px-1.5 py-0.5 rounded text-white font-medium">${movie.episode_current || 'HD'}</span>
+                    </div>
+                    <div class="p-2.5">
+                        <h4 class="font-semibold text-xs line-clamp-1">${movie.name}</h4>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function getMovieDetail(slug) {
+            loading.style.display = 'flex';
+            homeView.classList.add('hidden');
+            searchView.classList.add('hidden');
+            profileView.classList.add('hidden');
+            watchView.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`${API_BASE}/phim/${slug}`);
+                const data = await res.json();
+                const movie = data.movie;
+                const episodes = data.episodes;
+
+                document.getElementById('detailTitle').innerText = movie.name;
+                document.getElementById('detailOriginalName').innerText = `${movie.origin_name || ''} (${movie.year || ''})`;
+                
+                // Hiển thị số tập / tình trạng phim
+                const epCountText = movie.episode_total ? `Số tập: ${movie.episode_current || 'Đang cập nhật'} / ${movie.episode_total}` : (movie.episode_current || 'Full');
+                document.getElementById('detailEpisodeCount').innerText = epCountText;
+
+                document.getElementById('detailDesc').innerText = movie.content ? movie.content.replace(/<\/?[^>]+(>|$)/g, "") : "";
+
+                saveToWatchHistory(movie);
+                setupEpisodes(episodes);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function setupEpisodes(episodesData) {
+            const episodesList = document.getElementById('episodesList');
+            const serverContainer = document.getElementById('serverContainer');
+            episodesList.innerHTML = '';
+            serverContainer.innerHTML = '';
+
+            if(!episodesData || episodesData.length === 0) return;
+
+            serverContainer.innerHTML = '<span class="text-[11px] font-semibold opacity-70">Bản chiếu:</span>';
+
+            episodesData.forEach((server, sIdx) => {
+                const sBtn = document.createElement('button');
+                sBtn.className = `px-3 py-1 rounded-xl text-xs font-medium ios-pill transition ${sIdx === 0 ? 'bg-red-600 text-white border-red-500 active' : ''}`;
+                sBtn.innerText = server.server_name || `Server ${sIdx + 1}`;
+                sBtn.onclick = () => {
+                    document.querySelectorAll('#serverContainer button').forEach(b => b.classList.remove('bg-red-600', 'text-white', 'active'));
+                    sBtn.classList.add('bg-red-600', 'text-white', 'active');
+                    renderEpisodes(server.server_data);
+                };
+                serverContainer.appendChild(sBtn);
+            });
+
+            if(episodesData[0].server_data) {
+                renderEpisodes(episodesData[0].server_data);
+            }
+        }
+
+        function renderEpisodes(serverData) {
+            const episodesList = document.getElementById('episodesList');
+            episodesList.innerHTML = '';
+            if(!serverData || serverData.length === 0) return;
+
+            document.getElementById('playerIframe').src = serverData[0].link_embed;
+
+            serverData.forEach((ep, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `px-3 py-1.5 rounded-xl text-xs font-medium ios-pill transition ${idx === 0 ? 'bg-red-600 text-white border-red-500' : ''}`;
+                btn.innerText = ep.name;
+                btn.onclick = () => {
+                    document.getElementById('playerIframe').src = ep.link_embed;
+                    document.querySelectorAll('#episodesList button').forEach(b => b.classList.remove('bg-red-600', 'border-red-500'));
+                    btn.classList.add('bg-red-600', 'border-red-500');
+                };
+                episodesList.appendChild(btn);
+            });
+        }
+
+        searchInput.addEventListener('keypress', async (e) => {
+            if(e.key === 'Enter') {
+                const keyword = searchInput.value.trim();
+                if(!keyword) return;
+                const searchGrid = document.getElementById('searchGrid');
+                searchGrid.innerHTML = '<p class="col-span-3 text-center text-xs opacity-70">Đang tìm kiếm...</p>';
+                try {
+                    const res = await fetch(`${API_BASE}/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}&limit=12`);
+                    const data = await res.json();
+                    let movies = data.items || (data.data && data.data.items) || [];
+                    displayMovies(movies, searchGrid);
+                } catch(err) {
+                    console.error(err);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
